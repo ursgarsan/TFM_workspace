@@ -1,0 +1,21 @@
+{
+  "expo": {
+    "name": "app-movil",
+    "slug": "app-movil",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "appmovil",
+    "userInterfaceStyle": "automatic",
+    "android": {
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "static"
+    },
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}

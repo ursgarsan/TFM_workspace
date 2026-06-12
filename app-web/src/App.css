@@ -1,0 +1,35 @@
+.app-shell {
+  max-width: 760px;
+  margin: 4rem auto;
+  padding: 1.5rem;
+}
+
+.subtitle {
+  color: #555;
+  margin-top: -0.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.status-card {
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  background: #fff;
+}
+
+.status-ok {
+  border-color: #18a058;
+}
+
+.status-error {
+  border-color: #e5484d;
+}
+
+.status-loading {
+  border-color: #f5a524;
+}
+
+.error-text {
+  color: #b42318;
+  font-weight: 600;
+}
