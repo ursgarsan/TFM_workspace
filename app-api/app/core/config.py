@@ -12,6 +12,16 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
     database_url: str = "postgresql+psycopg://postgres:postgres@localhost:5432/app_api"
     database_echo: bool = False
+    auto_create_tables: bool = True
+    jwt_secret_key: str = "change-this-secret-in-env"
+    jwt_algorithm: str = "HS256"
+    assistant_ai_enabled: bool = True
+    assistant_ai_provider: str = "openai"
+    assistant_ai_model: str = "gpt-4o-mini"
+    assistant_ai_api_key: str = ""
+    assistant_ai_base_url: str | None = None
+    assistant_ai_timeout_seconds: float = 20.0
+    assistant_ai_temperature: float = 0.2
 
     model_config = SettingsConfigDict(
         env_file=".env",

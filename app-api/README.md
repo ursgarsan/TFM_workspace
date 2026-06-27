@@ -25,6 +25,39 @@ Si quieres cambiar configuracion por entorno, copia `.env.example` a `.env` y aj
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
+## Seed rapido
+Carga datos iniciales de demo (idempotente):
+
+```powershell
+python scripts/seed.py
+```
+
+## Asistente IA real
+El endpoint `POST /api/v1/assistant/query` usa IA real si configuras API key.
+Si no hay clave o falla el proveedor, hace fallback automatico a reglas.
+
+Variables relevantes en `.env`:
+- `ASSISTANT_AI_ENABLED=true`
+- `ASSISTANT_AI_PROVIDER=openai`
+- `ASSISTANT_AI_MODEL=llama3.1:8b`
+- `ASSISTANT_AI_API_KEY=ollama`
+- `ASSISTANT_AI_BASE_URL=http://localhost:11434/v1`
+
+### Ollama local (gratis)
+1. Instalar Ollama en Windows:
+
+```powershell
+winget install -e --id Ollama.Ollama --accept-package-agreements --accept-source-agreements
+```
+
+2. Descargar modelo:
+
+```powershell
+ollama pull llama3.1:8b
+```
+
+3. Reiniciar la API y probar `POST /api/v1/assistant/query`.
+
 ## Estructura
 ```text
 app/
