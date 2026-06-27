@@ -15,7 +15,15 @@ from app.services.assistant import build_assistant_answer
 router = APIRouter(prefix="/assistant", tags=["assistant"])
 
 
-def _next_schedule_occurrence(schedule_time, frequency: str, weekdays_csv: str | None, now: datetime) -> datetime | None:
+def _next_schedule_occurrence(
+    schedule_time,
+    frequency: str,
+    weekdays_csv: str | None,
+    now: datetime,
+    anchor_weekday: int | None = None,
+) -> datetime | None:
+    normalized_frequency = frequency.strip().lower()
+
     candidate_today = now.replace(
         hour=schedule_time.hour,
         minute=schedule_time.minute,
@@ -23,10 +31,26 @@ def _next_schedule_occurrence(schedule_time, frequency: str, weekdays_csv: str |
         microsecond=0,
     )
 
-    if frequency == "daily":
+    if normalized_frequency == "daily":
         return candidate_today if candidate_today >= now else candidate_today + timedelta(days=1)
 
-    if frequency == "weekly" and weekdays_csv:
+    if normalized_frequency == "weekly":
+        if anchor_weekday is None:
+            return None
+
+        for delta in range(0, 8):
+            candidate_day = (now + timedelta(days=delta)).replace(
+                hour=schedule_time.hour,
+                minute=schedule_time.minute,
+                second=0,
+                microsecond=0,
+            )
+            if candidate_day.weekday() == anchor_weekday and candidate_day >= now:
+                return candidate_day
+
+        return None
+
+    if normalized_frequency == "weekdays" and weekdays_csv:
         weekdays: list[int] = []
         for raw in weekdays_csv.split(","):
             raw = raw.strip()
@@ -93,7 +117,13 @@ def _build_clinical_context_for_user(db: Session, current_user: User) -> str:
         )
 
         for schedule in treatment.schedules:
-            next_at = _next_schedule_occurrence(schedule.time_of_day, schedule.frequency, schedule.weekdays_csv, now)
+            next_at = _next_schedule_occurrence(
+                schedule.time_of_day,
+                schedule.frequency,
+                schedule.weekdays_csv,
+                now,
+                treatment.start_date.weekday(),
+            )
             if next_at is not None:
                 upcoming_doses.append(
                     f"- {next_at.strftime('%Y-%m-%d %H:%M')} | {treatment_title}"

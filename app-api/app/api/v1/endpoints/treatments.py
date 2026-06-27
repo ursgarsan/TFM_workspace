@@ -10,6 +10,7 @@ from app.models.user import User, UserRole
 from app.schemas.treatment import (
     ScheduleCreate,
     ScheduleRead,
+    ScheduleUpdate,
     TreatmentCreate,
     TreatmentRead,
     TreatmentUpdate,
@@ -91,7 +92,8 @@ def update_treatment(
     if not treatment:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Treatment not found")
 
-    for field, value in payload.model_dump(exclude_none=True).items():
+    # Keep explicit nulls so fields like notes/end_date can be cleared from UI.
+    for field, value in payload.model_dump(exclude_unset=True).items():
         setattr(treatment, field, value)
 
     db.commit()
@@ -155,6 +157,52 @@ def list_schedules(
     )
 
 
+@router.put("/{treatment_id}/schedules/{schedule_id}", response_model=ScheduleRead)
+def update_schedule(
+    treatment_id: int,
+    schedule_id: int,
+    payload: ScheduleUpdate,
+    _: User = Depends(require_professional),
+    db: Session = Depends(get_db_session),
+) -> TreatmentSchedule:
+    schedule = db.scalar(
+        select(TreatmentSchedule).where(
+            TreatmentSchedule.id == schedule_id,
+            TreatmentSchedule.treatment_id == treatment_id,
+        )
+    )
+    if not schedule:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Schedule not found")
+
+    schedule.time_of_day = payload.time_of_day
+    schedule.frequency = payload.frequency
+    schedule.weekdays_csv = payload.weekdays_csv
+
+    db.commit()
+    db.refresh(schedule)
+    return schedule
+
+
+@router.delete("/{treatment_id}/schedules/{schedule_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_schedule(
+    treatment_id: int,
+    schedule_id: int,
+    _: User = Depends(require_professional),
+    db: Session = Depends(get_db_session),
+) -> None:
+    schedule = db.scalar(
+        select(TreatmentSchedule).where(
+            TreatmentSchedule.id == schedule_id,
+            TreatmentSchedule.treatment_id == treatment_id,
+        )
+    )
+    if not schedule:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Schedule not found")
+
+    db.delete(schedule)
+    db.commit()
+
+
 @router.get("/my/reminders")
 def reminders(
     day: date | None = Query(default=None),
@@ -165,7 +213,7 @@ def reminders(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Patient role required")
 
     target_day = day or datetime.now().date()
-    weekday = str(target_day.weekday())
+    weekday = str(target_day.weekday() + 1)
 
     treatments = list(
         db.scalars(
@@ -178,8 +226,19 @@ def reminders(
     reminders_data: list[dict[str, str | int | None]] = []
     for treatment in treatments:
         for schedule in treatment.schedules:
-            if schedule.frequency == "weekdays" and schedule.weekdays_csv:
-                if weekday not in schedule.weekdays_csv.split(","):
+            normalized_frequency = schedule.frequency.strip().lower()
+
+            if normalized_frequency == "weekdays":
+                if not schedule.weekdays_csv:
+                    continue
+
+                weekdays_tokens = [token.strip() for token in schedule.weekdays_csv.split(",") if token.strip()]
+                if weekday not in weekdays_tokens:
+                    continue
+
+            if normalized_frequency == "weekly":
+                treatment_weekday = str(treatment.start_date.weekday() + 1)
+                if weekday != treatment_weekday:
                     continue
 
             reminders_data.append(
@@ -189,7 +248,7 @@ def reminders(
                     "medication_name": treatment.medication_name,
                     "dosage": treatment.dosage,
                     "time_of_day": schedule.time_of_day.isoformat(),
-                    "frequency": schedule.frequency,
+                    "frequency": normalized_frequency,
                 }
             )
 
