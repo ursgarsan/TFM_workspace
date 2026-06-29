@@ -1,60 +1,97 @@
-import { useEffect, useState } from 'react'
-import { API_BASE_URL, fetchApiHealth } from './services/health'
 import './App.css'
+import { ConfirmDialog } from './components/ConfirmDialog'
+import { HeaderBar } from './components/HeaderBar'
+import { KpiCards } from './components/KpiCards'
+import { LoginView } from './components/LoginView'
+import { PatientsPanel } from './components/PatientsPanel'
+import { TreatmentsPanel } from './components/TreatmentsPanel'
+import { usePortalState } from './hooks/usePortalState'
 
 function App() {
-  const [status, setStatus] = useState('loading')
-  const [data, setData] = useState(null)
-  const [error, setError] = useState('')
+  const {
+    isAuthenticated,
+    authLoading,
+    authError,
+    user,
+    patients,
+    patientsLoading,
+    selectedPatient,
+    selectedPatientId,
+    treatments,
+    treatmentsLoading,
+    busyAction,
+    pageMessage,
+    confirmDialog,
+    loginForm,
+    patientForm,
+    treatmentForm,
+    editingTreatmentId,
+    selectedPatientTreatmentCount,
+    handlers,
+  } = usePortalState()
 
-  useEffect(() => {
-    let cancelled = false
-
-    async function runHealthCheck() {
-      try {
-        const payload = await fetchApiHealth()
-        if (!cancelled) {
-          setData(payload)
-          setStatus('ok')
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setStatus('error')
-          setError(err instanceof Error ? err.message : 'Unknown error')
-        }
-      }
-    }
-
-    runHealthCheck()
-    return () => {
-      cancelled = true
-    }
-  }, [])
+  if (!isAuthenticated) {
+    return (
+      <LoginView
+        loginForm={loginForm}
+        authLoading={authLoading}
+        authError={authError}
+        onLogin={handlers.handleLogin}
+        onLoginFieldChange={handlers.updateLoginField}
+      />
+    )
+  }
 
   return (
-    <main className="app-shell">
-      <h1>app-web</h1>
-      <p className="subtitle">Conectividad con app-api</p>
+    <main className="portal-shell">
+      <HeaderBar userFullName={user.full_name} onLogout={handlers.logout} />
 
-      <div className={`status-card status-${status}`}>
-        <p>
-          <strong>Backend:</strong>{' '}
-          {status === 'loading' && 'Comprobando...'}
-          {status === 'ok' && 'Conectado'}
-          {status === 'error' && 'Sin conexion'}
-        </p>
-        <p>
-          <strong>API Base URL:</strong> {API_BASE_URL}
-        </p>
+      <KpiCards patientsCount={patients.length} treatmentCount={selectedPatientTreatmentCount} />
 
-        {status === 'ok' && data && (
-          <p>
-            <strong>Respuesta:</strong> status={data.status}, uptime_seconds={data.uptime_seconds}
-          </p>
-        )}
+      {pageMessage && <div className="toast-message">{pageMessage}</div>}
 
-        {status === 'error' && <p className="error-text">{error}</p>}
-      </div>
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        onConfirm={handlers.confirmDelete}
+        onCancel={handlers.cancelDelete}
+      />
+
+      <section className="portal-grid">
+        <PatientsPanel
+          patients={patients}
+          selectedPatientId={selectedPatientId}
+          patientsLoading={patientsLoading}
+          patientForm={patientForm}
+          busyAction={busyAction}
+          onRefresh={handlers.handleRefreshPatients}
+          onCreatePatient={handlers.handleCreatePatient}
+          onPatientFieldChange={handlers.updatePatientField}
+          onSelectPatient={handlers.handleSelectPatient}
+        />
+
+        <TreatmentsPanel
+          selectedPatient={selectedPatient}
+          treatmentForm={treatmentForm}
+          editingTreatmentId={editingTreatmentId}
+          busyAction={busyAction}
+          treatments={treatments}
+          treatmentsLoading={treatmentsLoading}
+          getScheduleForm={handlers.getScheduleForm}
+          onTreatmentFieldChange={handlers.updateTreatmentField}
+          onCreateTreatment={handlers.handleCreateTreatment}
+          onEditTreatment={handlers.handleEditTreatment}
+          onCancelTreatmentEdit={handlers.handleCancelTreatmentEdit}
+          onDeleteTreatment={handlers.handleDeleteTreatment}
+          onScheduleFormChange={handlers.updateScheduleForm}
+          onToggleScheduleWeekday={handlers.toggleScheduleWeekday}
+          onEditSchedule={handlers.handleEditSchedule}
+          onCancelScheduleEdit={handlers.handleCancelScheduleEdit}
+          onDeleteSchedule={handlers.handleDeleteSchedule}
+          onAddSchedule={handlers.handleAddSchedule}
+        />
+      </section>
     </main>
   )
 }
