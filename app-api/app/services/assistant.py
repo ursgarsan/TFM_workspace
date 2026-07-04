@@ -9,25 +9,25 @@ def _build_rule_based_answer(question: str, clinical_context: str | None = None)
     if clinical_context and "Tratamientos:" in clinical_context:
         context_hint = (
             " Tengo en cuenta tu plan de tratamiento y, mientras se restablece la IA, te sugiero seguir "
-            "los horarios pautados y registrar tomas/sintomas de hoy."
+            "los horarios pautados y registrar tomas/síntomas de hoy."
         )
 
     if any(token in lower_q for token in ["dolor pecho", "falta de aire", "desmayo", "sangrado"]):
         return (
             "Ahora mismo no pude usar el modelo de IA y te respondo en modo respaldo. "
-            "Por seguridad, los sintomas que describes pueden ser de alarma: busca atencion urgente de inmediato."
+            "Por seguridad, los síntomas que describes pueden ser de alarma: busca atención urgente de inmediato."
         )
 
     if any(token in lower_q for token in ["fiebre", "tos", "mareo", "dolor"]):
         return (
             "Ahora mismo no pude usar el modelo de IA y te respondo en modo respaldo. "
-            "Vigila tu evolucion en las proximas 24-48 horas, mantente hidratado y consulta con tu medico si no mejoras."
+            "Vigila tu evolución en las proximas 24-48 horas, mantente hidratado y consulta con tu medico si no mejoras."
             f"{context_hint}"
         )
 
     return (
         "Ahora mismo no pude usar el modelo de IA y te respondo en modo respaldo. "
-        "Si me compartes sintomas, duracion e intensidad, podre orientarte mejor."
+        "Si me compartes síntomas, duración e intensidad, podré orientarte mejor."
         f"{context_hint}"
     )
 
