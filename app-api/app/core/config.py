@@ -22,6 +22,10 @@ class Settings(BaseSettings):
     assistant_ai_base_url: str | None = None
     assistant_ai_timeout_seconds: float = 20.0
     assistant_ai_temperature: float = 0.2
+    push_notifications_enabled: bool = True
+    push_tick_seconds: int = 30
+    push_default_timezone: str = "Europe/Madrid"
+    push_expo_url: str = "https://exp.host/--/api/v2/push/send"
 
     model_config = SettingsConfigDict(
         env_file=".env",

@@ -1,88 +1,51 @@
 # app-movil
 
-App móvil con Expo + React Native.
+App movil con Expo + React Native para pacientes.
+
+## Objetivo
+
+- Login de paciente
+- Consulta de recordatorios (`/api/v1/treatments/my/reminders`)
+- Registro de token de dispositivo en backend (`/api/v1/notifications/devices/register`)
+- Recepcion de notificaciones push remotas desde servidor
+
 ## Requisitos
+
 - Node.js 20+ o 22 LTS
-- Android Studio con SDK y emulator configurados
-- Un emulador Android arrancado antes de ejecutar la app
+- Android Studio con SDK y AVD configurados
+- app-api ejecutandose en `http://10.0.2.2:8000` (si usas emulador Android)
 
-## Configuracion
-La API se toma desde `EXPO_PUBLIC_API_BASE_URL`.
+## Variables de entorno
 
-Para emulador Android usa:
+En `.env.local`:
 
-```env
-EXPO_PUBLIC_API_BASE_URL=http://10.0.2.2:8000
-```
+- `EXPO_PUBLIC_API_BASE_URL=http://10.0.2.2:8000`
+- `EXPO_PUBLIC_PROJECT_ID=<tu-expo-project-id>`
+- `EXPO_PUBLIC_ALLOW_EMULATOR_PUSH=true` (solo para pruebas en emulador)
+
+## Credenciales Firebase
+
+- `google-services.json` se usa en cliente Android y no debe subirse a Git.
+- La clave JSON de `Service accounts` (FCM V1) tampoco debe subirse a Git.
+- Para FCM V1 usa `npx eas credentials` y sube la clave de `Service accounts` en Expo.
+
 ## Desarrollo
-```powershell
-npm install
-npx expo start
-```
 
-Luego pulsa `a` para abrir Android.
+1. `npm install`
+2. `npm run android`
 
-## Comprobacion
-La pantalla inicial consulta `GET /api/v1/health` y muestra:
-- estado del backend
-- URL configurada
-- uptime del servicio
+`npm run android` usa `expo run:android`, que compila y ejecuta sobre el emulador/dispositivo.
 
-## Nota para Android Emulator
-Si cambias el backend al ejecutar fuera del emulador, recuerda actualizar `EXPO_PUBLIC_API_BASE_URL`.
-# Welcome to your Expo app 👋
+## Android Studio (build manual)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+1. Ejecuta antes: `npx expo prebuild --platform android`
+2. Abre la carpeta `android/` en Android Studio
+3. Espera a Gradle Sync
+4. Selecciona un emulador/dispositivo
+5. Pulsa Run
 
-## Get started
+## Notas importantes sobre push
 
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-### Other setup steps
-
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- Para push remoto, el paciente debe abrir la app al menos una vez para iniciar sesion y aceptar permisos de notificacion.
+- Despues de ese registro inicial, los cambios de tratamientos se leen desde backend y no hace falta volver a abrir la app para reprogramar recordatorios.
+- En emulador Android, el push remoto puede ser inestable. Usa una imagen AVD con Google Play y deja `EXPO_PUBLIC_ALLOW_EMULATOR_PUSH=true` para permitir registro de token en pruebas.
