@@ -19,6 +19,7 @@ import {
   registerPushDevice,
   type ReminderItem,
 } from '@/services/api';
+import AssistantChatWidget from '@/components/AssistantChatWidget';
 import { getExpoPushRegistrationResult } from '@/services/notifications';
 
 export default function HomeScreen() {
@@ -170,6 +171,8 @@ export default function HomeScreen() {
           {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
         </View>
       </SafeAreaView>
+
+      <AssistantChatWidget authToken={authToken} />
     </View>
   );
 }

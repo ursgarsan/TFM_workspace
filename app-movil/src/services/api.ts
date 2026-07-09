@@ -23,6 +23,12 @@ export type ReminderItem = {
   frequency: string;
 };
 
+export type AssistantReply = {
+  answer: string;
+  source: string;
+  created_at: string;
+};
+
 type JsonRecord = Record<string, unknown>;
 
 async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
@@ -94,5 +100,15 @@ export function registerPushDevice(
       platform: 'android',
       timezone,
     }),
+  });
+}
+
+export function askAssistant(token: string, question: string): Promise<AssistantReply> {
+  return apiRequest<AssistantReply>('/api/v1/assistant/query', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ question }),
   });
 }
