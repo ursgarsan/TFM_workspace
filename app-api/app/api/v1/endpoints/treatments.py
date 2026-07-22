@@ -247,8 +247,10 @@ def reminders(
                     "title": treatment.title,
                     "medication_name": treatment.medication_name,
                     "dosage": treatment.dosage,
+                    "notes": treatment.notes,
                     "time_of_day": schedule.time_of_day.isoformat(),
                     "frequency": normalized_frequency,
+                    "weekdays_csv": schedule.weekdays_csv,
                 }
             )
 

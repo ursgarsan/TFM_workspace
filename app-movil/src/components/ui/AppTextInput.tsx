@@ -1,12 +1,12 @@
 import { StyleSheet, TextInput, type TextInputProps } from 'react-native';
 
-import { colors, radius } from '@/theme';
+import { colors, radius, typography } from '@/theme';
 
 export default function AppTextInput(props: TextInputProps) {
   return (
     <TextInput
       {...props}
-      placeholderTextColor={colors.border}
+      placeholderTextColor={colors.textMuted}
       style={[styles.input, props.style]}
     />
   );
@@ -17,9 +17,11 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderWidth: 1,
     borderRadius: radius.md,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    minHeight: 56,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    backgroundColor: colors.surface,
     color: colors.textPrimary,
-    fontSize: 16,
+    fontSize: typography.body,
   },
 });

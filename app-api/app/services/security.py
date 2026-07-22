@@ -1,4 +1,6 @@
 from datetime import UTC, datetime, timedelta
+import secrets
+import string
 
 import bcrypt
 from jose import JWTError, jwt
@@ -6,6 +8,19 @@ from jose import JWTError, jwt
 from app.core.config import get_settings
 
 settings = get_settings()
+
+
+def generate_temporary_password(length: int = 14) -> str:
+    alphabet = string.ascii_letters + string.digits + "!@#$%"
+    characters = [
+        secrets.choice(string.ascii_uppercase),
+        secrets.choice(string.ascii_lowercase),
+        secrets.choice(string.digits),
+        secrets.choice("!@#$%"),
+    ]
+    characters.extend(secrets.choice(alphabet) for _ in range(length - len(characters)))
+    secrets.SystemRandom().shuffle(characters)
+    return "".join(characters)
 
 
 def hash_password(password: str) -> str:

@@ -69,6 +69,7 @@ function App() {
           onCreatePatient={handlers.handleCreatePatient}
           onPatientFieldChange={handlers.updatePatientField}
           onSelectPatient={handlers.handleSelectPatient}
+          onDeletePatient={handlers.handleDeletePatient}
         />
 
         <TreatmentsPanel

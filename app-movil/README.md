@@ -7,7 +7,7 @@ App movil con Expo + React Native para pacientes.
 - Login de paciente
 - Consulta de recordatorios (`/api/v1/treatments/my/reminders`)
 - Registro de token de dispositivo en backend (`/api/v1/notifications/devices/register`)
-- Recepcion de notificaciones push remotas desde servidor
+- Recepción de notificaciones push remotas desde el servidor
 
 ## Requisitos
 
@@ -46,6 +46,6 @@ En `.env.local`:
 
 ## Notas importantes sobre push
 
-- Para push remoto, el paciente debe abrir la app al menos una vez para iniciar sesion y aceptar permisos de notificacion.
+- Para push remoto, el paciente debe abrir la app al menos una vez para iniciar sesión y aceptar permisos de notificación.
 - Despues de ese registro inicial, los cambios de tratamientos se leen desde backend y no hace falta volver a abrir la app para reprogramar recordatorios.
 - En emulador Android, el push remoto puede ser inestable. Usa una imagen AVD con Google Play y deja `EXPO_PUBLIC_ALLOW_EMULATOR_PUSH=true` para permitir registro de token en pruebas.

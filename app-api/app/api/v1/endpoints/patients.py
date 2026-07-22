@@ -4,8 +4,10 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_db_session, require_professional
 from app.models.user import User, UserRole
-from app.schemas.user import UserCreate, UserRead, UserUpdate
-from app.services.security import hash_password
+from app.schemas.user import PatientCreate, UserRead, UserUpdate
+from app.services.email import EmailDeliveryError, send_patient_welcome_email
+from app.services.security import generate_temporary_password, hash_password
+from app.services.users import delete_patient_account
 
 router = APIRouter(prefix="/patients", tags=["patients"])
 
@@ -20,21 +22,34 @@ def list_patients(
 
 @router.post("/", response_model=UserRead, status_code=status.HTTP_201_CREATED)
 def create_patient(
-    payload: UserCreate,
+    payload: PatientCreate,
     _: User = Depends(require_professional),
     db: Session = Depends(get_db_session),
 ) -> User:
-    existing = db.scalar(select(User).where(User.email == payload.email))
+    normalized_email = str(payload.email).strip().lower()
+    existing = db.scalar(select(User).where(User.email == normalized_email))
     if existing:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
 
+    full_name = payload.full_name.strip()
+    if not full_name:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="El nombre no puede estar vacío")
+
+    temporary_password = generate_temporary_password()
     patient = User(
-        email=payload.email,
-        full_name=payload.full_name,
-        password_hash=hash_password(payload.password),
+        email=normalized_email,
+        full_name=full_name,
+        password_hash=hash_password(temporary_password),
         role=UserRole.PATIENT,
+        must_change_password=True,
     )
     db.add(patient)
+    db.flush()
+    try:
+        send_patient_welcome_email(normalized_email, full_name, temporary_password)
+    except EmailDeliveryError as exc:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
     db.commit()
     db.refresh(patient)
     return patient
@@ -69,3 +84,15 @@ def update_patient(
     db.commit()
     db.refresh(patient)
     return patient
+
+
+@router.delete("/{patient_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_patient(
+    patient_id: int,
+    _: User = Depends(require_professional),
+    db: Session = Depends(get_db_session),
+) -> None:
+    patient = db.get(User, patient_id)
+    if not patient or patient.role != UserRole.PATIENT:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Paciente no encontrado")
+    delete_patient_account(db, patient)

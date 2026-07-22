@@ -93,6 +93,13 @@ async function createPatient(token, payload) {
   })
 }
 
+async function deletePatient(token, patientId) {
+  return request(`/api/v1/patients/${patientId}`, {
+    method: 'DELETE',
+    headers: authHeaders(token),
+  })
+}
+
 async function listTreatments(token, patientId) {
   return request(`/api/v1/treatments/?patient_id=${patientId}`, {
     headers: authHeaders(token),
@@ -151,6 +158,7 @@ export {
   createPatient,
   createTreatment,
   deleteSchedule,
+  deletePatient,
   deleteTreatment,
   getCurrentUser,
   listPatients,

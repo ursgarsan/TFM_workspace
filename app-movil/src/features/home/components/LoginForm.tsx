@@ -31,7 +31,7 @@ export default function LoginForm({
         placeholder="paciente@correo.com"
       />
 
-      <Text style={styles.metaLabel}>Contrasena</Text>
+      <Text style={styles.metaLabel}>Contraseña</Text>
       <AppTextInput
         value={password}
         onChangeText={onPasswordChange}
@@ -46,14 +46,13 @@ export default function LoginForm({
 
 const styles = StyleSheet.create({
   container: {
-    gap: spacing.sm,
+    gap: spacing.md,
   },
   metaLabel: {
-    marginTop: 6,
+    marginTop: 4,
     fontSize: typography.caption,
-    color: colors.textMuted,
+    color: colors.textSecondary,
     fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
+    letterSpacing: 0.2,
   },
 });

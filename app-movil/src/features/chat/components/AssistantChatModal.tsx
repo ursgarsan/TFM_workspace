@@ -60,7 +60,7 @@ export default function AssistantChatModal({
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Asistente virtual</Text>
             <Pressable onPress={onClose} style={styles.closeButton}>
-              <X size={16} color="#1E3A8A" weight="bold" />
+              <X size={20} color={colors.primaryStrong} weight="bold" />
             </Pressable>
           </View>
 
@@ -80,13 +80,13 @@ export default function AssistantChatModal({
             })}
             {sending && (
               <View style={[styles.bubble, styles.bubbleAssistant, styles.typingBubble]}>
-                <ActivityIndicator size="small" color="#1D4ED8" />
+                <ActivityIndicator size="small" color={colors.primaryStrong} />
                 <Text style={styles.typingText}>Escribiendo...</Text>
               </View>
             )}
           </ScrollView>
 
-          {!authToken && <Text style={styles.loginInfo}>Inicia sesion para hablar con el asistente.</Text>}
+          {!authToken && <Text style={styles.loginInfo}>Inicia sesión para hablar con el asistente.</Text>}
 
           <View
             style={[
@@ -129,22 +129,22 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: spacing.lg,
-    paddingVertical: 14,
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: colors.borderSoft,
+    borderBottomColor: colors.border,
     backgroundColor: colors.headerBg,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
   headerTitle: {
-    color: '#1E3A8A',
+    color: colors.textPrimary,
     fontSize: typography.section,
     fontWeight: '800',
   },
   closeButton: {
-    width: 28,
-    height: 28,
+    width: 40,
+    height: 40,
     borderRadius: radius.lg,
     alignItems: 'center',
     justifyContent: 'center',
@@ -155,19 +155,19 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceSoft,
   },
   messagesContent: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: 12,
-    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.lg,
+    gap: spacing.md,
   },
   bubble: {
     maxWidth: '88%',
     borderRadius: radius.lg,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 10,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: 12,
   },
   bubbleUser: {
     alignSelf: 'flex-end',
-    backgroundColor: colors.primaryStrong,
+    backgroundColor: colors.primary,
     borderBottomRightRadius: 4,
   },
   bubbleAssistant: {
@@ -180,12 +180,12 @@ const styles = StyleSheet.create({
   bubbleTextUser: {
     color: colors.surface,
     fontSize: typography.body,
-    lineHeight: 20,
+    lineHeight: 24,
   },
   bubbleTextAssistant: {
     color: colors.textPrimary,
     fontSize: typography.body,
-    lineHeight: 20,
+    lineHeight: 24,
   },
   typingBubble: {
     flexDirection: 'row',
@@ -193,8 +193,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   typingText: {
-    color: '#1E3A8A',
-    fontSize: 13,
+    color: colors.primaryStrong,
+    fontSize: typography.caption,
     fontWeight: '600',
   },
   loginInfo: {
@@ -208,11 +208,11 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   inputRow: {
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.lg,
     paddingTop: 10,
-    paddingBottom: 2,
+    paddingBottom: 4,
     borderTopWidth: 1,
-    borderTopColor: colors.borderSoft,
+    borderTopColor: colors.border,
     backgroundColor: colors.surface,
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -223,8 +223,8 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    minHeight: 42,
-    maxHeight: 90,
+    minHeight: 48,
+    maxHeight: 120,
     paddingVertical: 8,
     fontSize: typography.body,
   },

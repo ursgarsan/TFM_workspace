@@ -4,6 +4,7 @@ import {
   createPatient,
   createTreatment,
   deleteSchedule,
+  deletePatient,
   deleteTreatment,
   getCurrentUser,
   listPatients,
@@ -78,7 +79,7 @@ function usePortalState() {
   const confirmResolverRef = useRef(null)
 
   const [loginForm, setLoginForm] = useState({ email: '', password: '' })
-  const [patientForm, setPatientForm] = useState({ full_name: '', email: '', password: '' })
+  const [patientForm, setPatientForm] = useState({ full_name: '', email: '' })
   const [treatmentForm, setTreatmentForm] = useState(createDefaultTreatmentForm)
   const [scheduleForms, setScheduleForms] = useState({})
 
@@ -262,10 +263,12 @@ function usePortalState() {
         setPatients((previous) => [newPatient, ...previous])
         setSelectedPatientId(newPatient.id)
         await loadTreatments(token, newPatient.id)
-        setPatientForm({ full_name: '', email: '', password: '' })
-        setPageMessage('Paciente creado')
+        setPatientForm({ full_name: '', email: '' })
+        setPageMessage('Paciente creado. Contraseña temporal enviada por correo')
+        return true
       } catch (error) {
         setPageMessage(error instanceof Error ? error.message : 'No se pudo crear paciente')
+        return false
       } finally {
         setBusyAction('')
       }
@@ -541,6 +544,50 @@ function usePortalState() {
     [token, requestConfirmation],
   )
 
+  const handleDeletePatient = useCallback(
+    async (patientId) => {
+      if (!token) {
+        return
+      }
+
+      const patient = patients.find((item) => item.id === patientId)
+      if (!patient) {
+        return
+      }
+      const confirmed = await requestConfirmation(
+        `Se eliminarán permanentemente la cuenta de ${patient.full_name}, sus tratamientos y sus registros de tomas. Esta acción no se puede deshacer.`,
+        'Eliminar paciente',
+      )
+      if (!confirmed) {
+        return
+      }
+
+      setBusyAction(`delete-patient-${patientId}`)
+      setPageMessage('')
+      try {
+        await deletePatient(token, patientId)
+        const remainingPatients = patients.filter((item) => item.id !== patientId)
+        setPatients(remainingPatients)
+
+        if (selectedPatientId === patientId) {
+          const nextPatientId = remainingPatients[0]?.id ?? null
+          setSelectedPatientId(nextPatientId)
+          if (nextPatientId) {
+            await loadTreatments(token, nextPatientId)
+          } else {
+            setTreatments([])
+          }
+        }
+        setPageMessage('Paciente eliminado correctamente')
+      } catch (error) {
+        setPageMessage(error instanceof Error ? error.message : 'No se pudo eliminar el paciente')
+      } finally {
+        setBusyAction('')
+      }
+    },
+    [token, patients, selectedPatientId, requestConfirmation, loadTreatments],
+  )
+
   const handleSelectPatient = useCallback(
     (patientId) => {
       setSelectedPatientId(patientId)
@@ -618,6 +665,7 @@ function usePortalState() {
       handleCancelScheduleEdit,
       handleDeleteSchedule,
       handleDeleteTreatment,
+      handleDeletePatient,
       handleSelectPatient,
       handleRefreshPatients,
       confirmDelete,

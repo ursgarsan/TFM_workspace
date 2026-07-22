@@ -70,7 +70,7 @@ def _build_ai_answer(question: str, clinical_context: str | None = None) -> str 
                     "content": (
                         "Eres un asistente de salud orientativo para adherencia terapeutica. "
                         "Usa TODO el contexto clinico disponible para personalizar la respuesta y priorizar tratamiento activo. "
-                        "Si hay medicacion registrada, menciona explicitamente farmaco, dosis y horario cuando sea relevante. "
+        "Si hay medicación registrada, menciona explícitamente fármaco, dosis y horario cuando sea relevante. "
                         "Si hay datos de adherencia, utilzalos para recomendar acciones concretas para hoy. "
                         "Si hay consultas previas, evita repetir texto literal y aporta valor nuevo. "
                         "Si falta contexto clinico, dilo explicitamente y pide el dato minimo necesario. "

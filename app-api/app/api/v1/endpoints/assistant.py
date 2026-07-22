@@ -160,7 +160,7 @@ def _build_clinical_context_for_user(db: Session, current_user: User) -> str:
         total = len(intakes_7d)
         adherence_pct = round((taken_count / total) * 100, 1) if total else 0.0
         lines.append(
-            "Adherencia ultimos 7 dias: "
+                "Adherencia últimos 7 días: "
             f"{taken_count} tomadas, {not_taken_count} no tomadas, total {total}, adherencia {adherence_pct}%."
         )
 

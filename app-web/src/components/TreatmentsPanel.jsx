@@ -1,14 +1,17 @@
 import { useState } from 'react'
 import { FiEdit2, FiPlus, FiTrash2, FiX } from 'react-icons/fi'
 import { formatDate, formatTime, formatWeekdaysCsv, parseWeekdaysCsv } from '../utils/formatters'
+import { CustomSelect } from './ui/CustomSelect'
+import { CustomMultiSelect } from './ui/CustomMultiSelect'
+import { TimePicker } from './ui/TimePicker'
 
 const WEEKDAY_OPTIONS = [
   { value: '1', label: 'Lun' },
   { value: '2', label: 'Mar' },
-  { value: '3', label: 'Mie' },
+  { value: '3', label: 'Mié' },
   { value: '4', label: 'Jue' },
   { value: '5', label: 'Vie' },
-  { value: '6', label: 'Sab' },
+  { value: '6', label: 'Sáb' },
   { value: '7', label: 'Dom' },
 ]
 
@@ -283,43 +286,35 @@ function TreatmentsPanel({
                       <span className="label-with-required">
                         Hora <span className="required-mark">*</span>
                       </span>
-                      <input
-                        type="time"
+                      <TimePicker
                         value={scheduleForm.time_of_day}
-                        onChange={(event) => onScheduleFormChange(treatment.id, 'time_of_day', event.target.value)}
-                        required
+                        ariaLabel="Hora del tratamiento"
+                        onChange={(value) => onScheduleFormChange(treatment.id, 'time_of_day', value)}
                       />
                     </label>
                     <label className="schedule-field">
                       <span className="label-with-required">
                         Frecuencia <span className="required-mark">*</span>
                       </span>
-                      <select
+                      <CustomSelect
                         value={scheduleForm.frequency}
-                        onChange={(event) => onScheduleFormChange(treatment.id, 'frequency', event.target.value)}
-                      >
-                        {FREQUENCY_OPTIONS.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
+                        options={FREQUENCY_OPTIONS}
+                        ariaLabel="Frecuencia del tratamiento"
+                        onChange={(value) => onScheduleFormChange(treatment.id, 'frequency', value)}
+                      />
                     </label>
                     {isWeekdaysSchedule && (
                       <div className="weekday-picker">
                         <p className="weekday-label">
-                          Dias <span className="required-mark">*</span>
+                          Días <span className="required-mark">*</span>
                         </p>
-                        {WEEKDAY_OPTIONS.map((day) => (
-                          <label key={day.value}>
-                            <input
-                              type="checkbox"
-                              checked={selectedWeekdays.includes(day.value)}
-                              onChange={() => onToggleScheduleWeekday(treatment.id, day.value)}
-                            />
-                            {day.label}
-                          </label>
-                        ))}
+                        <CustomMultiSelect
+                          values={selectedWeekdays}
+                          options={WEEKDAY_OPTIONS}
+                          placeholder="Seleccione los días"
+                          ariaLabel="Días de la semana"
+                          onToggle={(dayValue) => onToggleScheduleWeekday(treatment.id, dayValue)}
+                        />
                       </div>
                     )}
                     <button type="submit" disabled={busyAction === `schedule-${treatment.id}`}>

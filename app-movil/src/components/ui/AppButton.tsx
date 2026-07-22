@@ -9,6 +9,7 @@ type AppButtonProps = {
   onPress: () => void;
   children?: React.ReactNode;
   compact?: boolean;
+  variant?: 'primary' | 'danger';
 };
 
 export default function AppButton({
@@ -18,10 +19,20 @@ export default function AppButton({
   onPress,
   children,
   compact = false,
+  variant = 'primary',
 }: AppButtonProps) {
   return (
     <Pressable
-      style={[styles.button, compact ? styles.compactButton : null, disabled ? styles.disabledButton : null]}
+      accessibilityRole="button"
+      accessibilityState={{ disabled: disabled || loading, busy: loading }}
+      style={({ pressed }) => [
+        styles.button,
+        compact ? styles.compactButton : null,
+        variant === 'danger' ? styles.dangerButton : null,
+        pressed && !disabled && !loading ? styles.pressedButton : null,
+        pressed && !disabled && !loading && variant === 'danger' ? styles.dangerPressedButton : null,
+        disabled ? styles.disabledButton : null,
+      ]}
       onPress={onPress}
       disabled={disabled || loading}
     >
@@ -34,22 +45,33 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: colors.primary,
     borderRadius: radius.lg,
-    paddingVertical: 14,
+    minHeight: 56,
+    paddingHorizontal: 18,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  pressedButton: {
+    backgroundColor: colors.primaryStrong,
+  },
   compactButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    paddingVertical: 0,
+    width: 48,
+    minHeight: 48,
+    borderRadius: 24,
+    paddingHorizontal: 0,
   },
   disabledButton: {
-    backgroundColor: '#94A3B8',
+    backgroundColor: '#A8B0B8',
+  },
+  dangerButton: {
+    backgroundColor: colors.danger,
+  },
+  dangerPressedButton: {
+    backgroundColor: '#982338',
   },
   label: {
     color: colors.surface,
     fontSize: typography.button,
     fontWeight: '700',
+    letterSpacing: 0.2,
   },
 });

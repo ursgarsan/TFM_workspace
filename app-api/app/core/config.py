@@ -26,6 +26,15 @@ class Settings(BaseSettings):
     push_tick_seconds: int = 30
     push_default_timezone: str = "Europe/Madrid"
     push_expo_url: str = "https://exp.host/--/api/v2/push/send"
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_username: str = ""
+    smtp_password: str = ""
+    smtp_from_email: str = ""
+    smtp_from_name: str = "Equipo de salud"
+    smtp_use_tls: bool = True
+    smtp_use_ssl: bool = False
+    smtp_timeout_seconds: float = 15.0
 
     model_config = SettingsConfigDict(
         env_file=".env",

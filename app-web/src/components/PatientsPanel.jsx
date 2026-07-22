@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { FiPlus, FiRefreshCw, FiX } from 'react-icons/fi'
+import { FiPlus, FiRefreshCw, FiTrash2, FiX } from 'react-icons/fi'
 
 function PatientsPanel({
   patients,
@@ -11,12 +11,15 @@ function PatientsPanel({
   onCreatePatient,
   onPatientFieldChange,
   onSelectPatient,
+  onDeletePatient,
 }) {
   const [showCreatePatientForm, setShowCreatePatientForm] = useState(false)
 
   const handleCreatePatient = async (event) => {
-    await onCreatePatient(event)
-    setShowCreatePatientForm(false)
+    const created = await onCreatePatient(event)
+    if (created) {
+      setShowCreatePatientForm(false)
+    }
   }
 
   return (
@@ -64,27 +67,21 @@ function PatientsPanel({
             </span>
             <input name="email" type="email" value={patientForm.email} onChange={onPatientFieldChange} required />
           </label>
-          <label>
-            <span className="label-with-required">
-              Password inicial <span className="required-mark">*</span>
-            </span>
-            <input
-              name="password"
-              type="password"
-              value={patientForm.password}
-              onChange={onPatientFieldChange}
-              required
-            />
-          </label>
+          <p className="form-help">
+            El paciente recibirá por correo una contraseña temporal generada automáticamente.
+          </p>
           <button type="submit" disabled={busyAction === 'patient'}>
-            {busyAction === 'patient' ? 'Creando...' : 'Crear paciente'}
+            {busyAction === 'patient' ? 'Creando y enviando...' : 'Crear paciente'}
           </button>
         </form>
       )}
 
       <ul className="patient-list">
         {patients.map((patient) => (
-          <li key={patient.id}>
+          <li
+            className={selectedPatientId === patient.id ? 'patient-row has-actions' : 'patient-row'}
+            key={patient.id}
+          >
             <button
               className={selectedPatientId === patient.id ? 'patient-item active' : 'patient-item'}
               onClick={() => onSelectPatient(patient.id)}
@@ -92,6 +89,18 @@ function PatientsPanel({
               <strong>{patient.full_name}</strong>
               <span>{patient.email}</span>
             </button>
+            {selectedPatientId === patient.id && (
+              <button
+                type="button"
+                className="icon-button danger-icon patient-delete-button"
+                onClick={() => onDeletePatient(patient.id)}
+                disabled={busyAction === `delete-patient-${patient.id}`}
+                aria-label={`Eliminar a ${patient.full_name}`}
+                title={`Eliminar a ${patient.full_name}`}
+              >
+                <FiTrash2 size={17} aria-hidden="true" focusable="false" />
+              </button>
+            )}
           </li>
         ))}
         {patients.length === 0 && <li className="empty">No hay pacientes</li>}

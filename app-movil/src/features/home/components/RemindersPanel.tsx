@@ -1,89 +1,151 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ArrowsClockwise } from 'phosphor-react-native';
 
 import { AppButton } from '@/components/ui';
-import { API_BASE_URL } from '@/services/api/config';
 import type { ReminderItem } from '@/services/api/treatments';
 import { colors, radius, spacing, typography } from '@/theme';
 
 type RemindersPanelProps = {
-  patientName: string;
   reminderCountLabel: string;
-  pushStatus: string | null;
   reminders: ReminderItem[];
   syncing: boolean;
   onRefresh: () => void;
+  takenReminderKeys: ReadonlySet<string>;
+  savingReminderKey: string | null;
+  onMarkAsTaken: (reminder: ReminderItem) => void;
 };
 
+function getReminderKey(reminder: ReminderItem): string {
+  return `${reminder.treatment_id}-${reminder.time_of_day.slice(0, 5)}`;
+}
+
+function translateFrequency(value: string): string {
+  const normalized = value.trim().toLowerCase();
+  if (normalized === 'daily') {
+    return 'Diaria';
+  }
+  if (normalized === 'weekly') {
+    return 'Semanal';
+  }
+  if (normalized === 'weekdays') {
+    return 'Personalizada';
+  }
+  return value;
+}
+
+const WEEKDAY_LABELS: Record<string, string> = {
+  '1': 'Lun',
+  '2': 'Mar',
+  '3': 'Mié',
+  '4': 'Jue',
+  '5': 'Vie',
+  '6': 'Sáb',
+  '7': 'Dom',
+};
+
+function formatWeekdaysCsv(weekdaysCsv: string | null | undefined): string {
+  if (!weekdaysCsv) {
+    return '';
+  }
+
+  return weekdaysCsv
+    .split(',')
+    .map((value) => value.trim())
+    .filter((value) => WEEKDAY_LABELS[value])
+    .map((value) => WEEKDAY_LABELS[value])
+    .join(', ');
+}
+
+function buildFrequencyLabel(reminder: ReminderItem): string {
+  const frequencyLabel = translateFrequency(reminder.frequency);
+  const normalized = reminder.frequency.trim().toLowerCase();
+  if (normalized !== 'weekdays') {
+    return frequencyLabel;
+  }
+
+  const weekdaysLabel = formatWeekdaysCsv(reminder.weekdays_csv);
+  if (!weekdaysLabel) {
+    return frequencyLabel;
+  }
+
+  return `${frequencyLabel} (${weekdaysLabel})`;
+}
+
 export default function RemindersPanel({
-  patientName,
   reminderCountLabel,
-  pushStatus,
   reminders,
   syncing,
   onRefresh,
+  takenReminderKeys,
+  savingReminderKey,
+  onMarkAsTaken,
 }: RemindersPanelProps) {
   return (
     <>
-      <Text style={styles.label}>Paciente</Text>
-      <Text style={styles.value}>{patientName}</Text>
-      <Text style={styles.metaValue}>API: {API_BASE_URL}</Text>
-      <Text style={styles.metaValue}>{reminderCountLabel}</Text>
-      {pushStatus && <Text style={styles.metaValue}>{pushStatus}</Text>}
-
-      <AppButton
-        label="Actualizar recordatorios"
-        loading={syncing}
-        onPress={onRefresh}
-      />
+      <View style={styles.headerRow}>
+        <Text style={styles.metaValueStrong}>{reminderCountLabel}</Text>
+        <AppButton loading={syncing} onPress={onRefresh} compact>
+          <ArrowsClockwise size={20} color="#FFFFFF" weight="bold" />
+        </AppButton>
+      </View>
 
       <ScrollView style={styles.remindersContainer} contentContainerStyle={styles.remindersContent}>
         {reminders.length === 0 && <Text style={styles.emptyText}>No hay tomas para hoy.</Text>}
-        {reminders.map((reminder, index) => (
-          <View key={`${reminder.treatment_id}-${index}`} style={styles.reminderCard}>
-            <Text style={styles.reminderTitle}>{reminder.title}</Text>
-            <Text style={styles.reminderText}>{reminder.medication_name}</Text>
-            <Text style={styles.reminderText}>Dosis: {reminder.dosage}</Text>
-            <Text style={styles.reminderText}>Hora: {reminder.time_of_day.slice(0, 5)}</Text>
-            <Text style={styles.reminderTag}>{reminder.frequency}</Text>
-          </View>
-        ))}
+        {reminders.map((reminder, index) => {
+          const reminderKey = getReminderKey(reminder);
+          const isTaken = takenReminderKeys.has(reminderKey);
+
+          return (
+            <View key={`${reminderKey}-${index}`} style={styles.reminderCard}>
+              <Text style={styles.reminderTitle}>{reminder.title}</Text>
+              <Text style={styles.reminderText}>{reminder.medication_name}</Text>
+              <Text style={styles.reminderText}>Dosis: {reminder.dosage}</Text>
+              <Text style={styles.reminderText}>Hora: {reminder.time_of_day.slice(0, 5)}</Text>
+              {reminder.notes?.trim() ? (
+                <Text style={styles.reminderText}>Comentarios: {reminder.notes.trim()}</Text>
+              ) : null}
+              <Text style={styles.reminderTag}>{buildFrequencyLabel(reminder)}</Text>
+              <AppButton
+                label={isTaken ? 'Tomada hoy' : 'Marcar como tomada'}
+                loading={savingReminderKey === reminderKey}
+                disabled={isTaken || savingReminderKey !== null}
+                onPress={() => onMarkAsTaken(reminder)}
+              />
+            </View>
+          );
+        })}
       </ScrollView>
     </>
   );
 }
 
 const styles = StyleSheet.create({
-  label: {
-    fontSize: typography.caption,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    color: colors.textMuted,
-    fontWeight: '700',
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: spacing.md,
   },
-  value: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  metaValue: {
+  metaValueStrong: {
     fontSize: typography.bodyMd,
     color: colors.textPrimary,
+    fontWeight: '700',
   },
   remindersContainer: {
-    marginTop: spacing.sm,
+    marginTop: spacing.md,
     flex: 1,
   },
   remindersContent: {
-    paddingBottom: 16,
-    gap: spacing.sm,
+    paddingBottom: 24,
+    gap: spacing.md,
   },
   reminderCard: {
     backgroundColor: colors.surfaceSoft,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: colors.borderSoft,
-    padding: spacing.md,
-    gap: 4,
+    borderColor: colors.border,
+    padding: spacing.lg,
+    gap: 6,
   },
   reminderTitle: {
     fontSize: typography.section,
@@ -92,23 +154,23 @@ const styles = StyleSheet.create({
   },
   reminderText: {
     fontSize: typography.body,
-    color: '#334155',
+    color: colors.textSecondary,
   },
   reminderTag: {
-    marginTop: 4,
+    marginTop: 6,
     alignSelf: 'flex-start',
     borderRadius: radius.pill,
     backgroundColor: colors.primarySoft,
-    color: '#1E40AF',
+    color: colors.primaryStrong,
     fontSize: typography.caption,
     fontWeight: '700',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     overflow: 'hidden',
   },
   emptyText: {
     color: colors.textMuted,
     fontSize: typography.body,
-    marginTop: 6,
+    marginTop: 8,
   },
 });

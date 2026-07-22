@@ -155,7 +155,7 @@ def dispatch_due_push_notifications(db: Session, now_utc: datetime | None = None
                 if delivery_exists:
                     continue
 
-                title = "Recordatorio de medicacion"
+                title = "Recordatorio de medicación"
                 body = f"{treatment.medication_name} ({treatment.dosage}) - {schedule.time_of_day.strftime('%H:%M')}"
 
                 delivered = False
